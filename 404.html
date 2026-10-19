@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a1628">
+<title>NeuroMotrix Express v1.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg:        #0a1628;
+  --surface:   #111e35;
+  --surface2:  #1a2d4a;
+  --border:    #1e3560;
+  --primary:   #00c4ff;
+  --accent:    #00e5a0;
+  --warn:      #ffb347;
+  --danger:    #ff4d6d;
+  --text:      #e8f0fe;
+  --muted:     #6b83a6;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --r:         14px;
+  --r-lg:      20px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ─────────────────────────────────────────────────── */
+.screen { display: none; flex-direction: column; min-height: 100vh; }
+.screen.active { display: flex; }
+
+.page-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 20px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.app-header {
+  background: linear-gradient(135deg, var(--bg) 0%, #0e1f40 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.app-header-logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--primary);
+  text-transform: uppercase;
+}
+.app-header-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+.app-header-badge {
+  margin-left: auto;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+/* ── CARDS ───────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* ── FORM ELEMENTS ───────────────────────────────────────────── */
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+input[type=text] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+input[type=text]:focus { border-color: var(--primary); }
+input[type=text]::placeholder { color: var(--muted); font-size: 13px; }
+
+/* ── BUTTONS ─────────────────────────────────────────────────── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  border-radius: var(--r);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .3px;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #001829; }
+.btn-accent  { background: var(--accent); color: #001829; }
+.btn-danger  { background: var(--danger); color: white; }
+.btn-ghost   { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+.btn-sm { padding: 9px 16px; font-size: 13px; width: auto; }
+.mt-8  { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.spacer { flex: 1; }
+
+/* ── CONNECTION STATUS ───────────────────────────────────────── */
+.conn-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.conn-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted); flex-shrink: 0;
+  transition: background .3s;
+}
+.conn-dot.ok    { background: var(--accent); }
+.conn-dot.err   { background: var(--danger); }
+.conn-dot.pulse {
+  background: var(--warn);
+  animation: blink .8s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.conn-text { font-size: 12px; color: var(--muted); flex: 1; }
+
+/* ── INFO BOX ────────────────────────────────────────────────── */
+.info-box {
+  background: #0d1f3a;
+  border: 1px solid #1b3d6e;
+  border-radius: var(--r);
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #8aaad4;
+}
+.info-box strong { color: var(--primary); }
+
+/* ── PROGRESS BAR ────────────────────────────────────────────── */
+.progress-track {
+  display: flex;
+  gap: 4px;
+  padding: 16px 0 0;
+}
+.progress-seg {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--border);
+  transition: background .4s;
+}
+.progress-seg.done   { background: var(--accent); }
+.progress-seg.active { background: var(--primary); }
+
+/* ── TEST SCREEN ─────────────────────────────────────────────── */
+.test-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 10px 0 6px;
+}
+.test-icon-wrap {
+  text-align: center;
+  font-size: 64px;
+  margin: 12px 0;
+  line-height: 1;
+}
+.test-name {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 3px;
+}
+.test-placement {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.instruction-box {
+  background: var(--surface2);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+/* Timer */
+.timer-wrap {
+  text-align: center;
+  padding: 20px 0;
+}
+.timer-big {
+  font-family: var(--mono);
+  font-size: 80px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary);
+  transition: color .3s;
+}
+.timer-big.recording { color: var(--danger); }
+.timer-big.done      { color: var(--accent); }
+.timer-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.rec-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--danger);
+  letter-spacing: 1px;
+}
+.rec-badge.show { display: flex; }
+
+/* ── RESULTS ─────────────────────────────────────────────────── */
+.global-card {
+  background: linear-gradient(135deg, #0e1f40, #112240);
+  border: 1px solid #1e3560;
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.global-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
+.global-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.global-row:last-child { margin-bottom: 0; }
+.global-key { font-size: 14px; font-weight: 500; }
+
+.badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+.badge-ok      { background: rgba(0,229,160,.15); color: var(--accent); }
+.badge-warn    { background: rgba(255,179,71,.15); color: var(--warn); }
+.badge-danger  { background: rgba(255,77,109,.15); color: var(--danger); }
+
+.metric-block { border-bottom: 1px solid var(--border); padding: 11px 0; }
+.metric-block:last-child { border-bottom: none; }
+.metric-row { display: flex; align-items: baseline; justify-content: space-between; }
+.metric-key { font-size: 13px; color: var(--muted); }
+.metric-val {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.metric-val.ok     { color: var(--accent); }
+.metric-val.warn   { color: var(--warn); }
+.metric-val.danger { color: var(--danger); }
+.metric-interp {
+  font-size: 11px;
+  color: #5a7499;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* ── TOAST ───────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 20px;
+  font-size: 13px; color: var(--text);
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+  z-index: 100;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ── DEMO MODE BANNER ────────────────────────────────────────── */
+.demo-banner {
+  background: rgba(255,179,71,.1);
+  border: 1px solid rgba(255,179,71,.3);
+  border-radius: var(--r);
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--warn);
+  text-align: center;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+  display: none;
+}
+.demo-banner.show { display: block; }
+
+/* ── SCALES ──────────────────────────────────────────────────── */
+.scale-intro-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:11px}
+.si-icon{font-size:26px;flex-shrink:0}
+.si-name{font-size:13px;font-weight:700;margin-bottom:1px}
+.si-sub{font-size:11px;color:var(--muted)}
+.si-badge{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;padding:3px 9px;color:var(--muted);
+  white-space:nowrap;flex-shrink:0}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:16px;margin-bottom:11px}
+.q-num{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:7px}
+.q-text{font-size:14px;font-weight:500;line-height:1.65;margin-bottom:14px}
+.q-subtext{font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:12px;line-height:1.5}
+.yn-row{display:flex;gap:9px}
+.yn-btn{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:var(--r);
+  background:var(--surface2);color:var(--text);font-family:var(--sans);font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+.yn-btn.selected-yes{border-color:var(--accent);background:rgba(0,229,160,.12);color:var(--accent)}
+.yn-btn.selected-no{border-color:var(--muted);background:rgba(255,255,255,.04);color:var(--muted)}
+.likert-wrap{display:flex;flex-direction:column;gap:6px}
+.likert-opt{display:flex;align-items:center;gap:11px;padding:10px 12px;
+  border:1.5px solid var(--border);border-radius:var(--r);
+  background:var(--surface2);cursor:pointer;transition:all .15s}
+.likert-opt.selected{border-color:var(--primary);background:rgba(0,196,255,.09)}
+.likert-score{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted);min-width:18px;text-align:center}
+.likert-opt.selected .likert-score{color:var(--primary)}
+.likert-label{font-size:12px;line-height:1.4;flex:1}
+.emoji-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.emoji-opt{padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--r);
+  background:var(--surface2);cursor:pointer;text-align:center;transition:all .15s}
+.emoji-opt.selected{border-color:var(--accent);background:rgba(0,229,160,.10)}
+.eo-icon{font-size:26px;margin-bottom:3px}
+.eo-label{font-size:11px;color:var(--muted);line-height:1.3}
+.emoji-obj{font-size:58px;text-align:center;margin:8px 0 12px;line-height:1}
+.q-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:14px;
+  padding:10px 13px;outline:none;transition:border-color .2s;margin-bottom:7px}
+.q-input:focus{border-color:var(--primary)}
+.q-input::placeholder{color:var(--muted);font-size:12px}
+.sc-prog-wrap{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.sc-prog-bar{flex:1;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.sc-prog-fill{height:100%;background:var(--primary);border-radius:2px;transition:width .3s}
+.sc-prog-txt{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+.scale-row{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid var(--border)}
+.scale-row:last-child{border-bottom:none}
+.scale-rname{font-size:12px}
+.scale-rscore{font-family:var(--mono);font-size:14px;font-weight:700}
+.scale-interp{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 0 · SETUP
+════════════════════════════════════════════════════════════ -->
+<div id="s-setup" class="screen active">
+  <div class="app-header">
+    <div>
+      <div class="app-header-logo">NeuroMotrix</div>
+      <div class="app-header-sub">Protocolo Express · 5 min</div>
+    </div>
+    <div class="app-header-badge">v1.0</div>
+  </div>
+
+  <div class="page-inner">
+
+    <div class="card">
+      <div class="card-title">Conexión Phyphox</div>
+      <label for="inp-ip">IP del teléfono con Phyphox</label>
+      <input type="text" id="inp-ip" placeholder="192.168.1.X:8080">
+      <div class="conn-row">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span class="conn-text" id="conn-text">Sin conexión</span>
+        <button class="btn btn-ghost btn-sm" onclick="testConnection()">Probar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Identificación</div>
+      <label for="inp-pid">ID / Iniciales del paciente</label>
+      <input type="text" id="inp-pid" placeholder="ej. JGM-01" class="mb-12">
+      <label for="inp-note">Nota clínica</label>
+      <input type="text" id="inp-note" placeholder="ej. Estado ON, sin ajuste reciente">
+    </div>
+
+    <div class="info-box mb-12">
+      <strong>📱 Cómo obtener la IP de Phyphox:</strong><br><br>
+      <b>1.</b> Abre Phyphox → selecciona <strong>«Aceleración (sin g)»</strong><br>
+      <b>2.</b> Pulsa <strong>▶</strong> para iniciar la grabación<br>
+      <b>3.</b> Toca el menú <strong>⋮</strong> (arriba a la derecha)<br>
+      <b>4.</b> Selecciona <strong>«Acceso remoto»</strong> → activa el interruptor<br>
+      <b>5.</b> Phyphox muestra una dirección tipo <strong>http://192.168.1.45:8080</strong><br>
+      <b>6.</b> Escribe solo la parte <strong>192.168.1.45:8080</strong> en el campo de arriba<br><br>
+      <strong>⚠️ El móvil con Phyphox y este dispositivo deben estar en la misma WiFi.</strong><br>
+      Abrir como <strong>file://</strong> o HTTP local — no HTTPS.<br><br>
+      Sin Phyphox → usa <strong>Modo Demo</strong> con datos sintéticos.
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="btn btn-primary mb-8" onclick="startProtocol(false)">
+      ▶ &nbsp;Iniciar con Phyphox
+    </button>
+    <button class="btn btn-ghost" onclick="startProtocol(true)">
+      🧪 &nbsp;Modo Demo (sin Phyphox)
+    </button>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 1 · TEST
+════════════════════════════════════════════════════════════ -->
+<div id="s-test" class="screen">
+  <div class="app-header">
+    <div>
+      <div class="app-header-logo">NeuroMotrix</div>
+      <div class="app-header-sub" id="t-meta">Test 1 de 5</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="skipTest()">Omitir</button>
+  </div>
+
+  <div class="page-inner">
+    <div class="demo-banner" id="demo-banner">🧪 MODO DEMO — datos sintéticos</div>
+
+    <div class="progress-track" id="progress-track">
+      <div class="progress-seg" id="ps0"></div>
+      <div class="progress-seg" id="ps1"></div>
+      <div class="progress-seg" id="ps2"></div>
+      <div class="progress-seg" id="ps3"></div>
+      <div class="progress-seg" id="ps4"></div>
+    </div>
+
+    <div class="test-icon-wrap" id="t-icon">🤲</div>
+    <div class="test-name" id="t-name">—</div>
+    <div class="test-placement" id="t-placement">—</div>
+
+    <div class="instruction-box" id="t-instr"></div>
+
+    <div class="timer-wrap">
+      <div class="timer-big" id="t-num">—</div>
+      <div class="timer-sub" id="t-sub">Listo</div>
+      <div class="rec-badge" id="rec-badge">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--danger);animation:blink .8s infinite;display:inline-block"></span>
+        GRABANDO
+      </div>
+    </div>
+
+    <div id="t-btn-area">
+      <button class="btn btn-primary" id="t-main-btn" onclick="handleMainBtn()">
+        ▶ &nbsp;Iniciar Test
+      </button>
+    </div>
+
+    <div id="t-processing" style="display:none;text-align:center;padding:24px 0">
+      <div style="font-size:36px;margin-bottom:12px">⚙️</div>
+      <div style="font-weight:600;margin-bottom:4px">Procesando señal...</div>
+      <div style="font-size:12px;color:var(--muted)">FFT · detección de picos · estadísticas</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 2 · RESULTS
+════════════════════════════════════════════════════════════ -->
+<div id="s-results" class="screen">
+  <div class="app-header">
+    <div>
+      <div class="app-header-logo">Informe NeuroMotrix</div>
+      <div class="app-header-sub" id="r-meta">—</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="resetApp()">Nueva</button>
+  </div>
+
+  <div class="page-inner">
+    <div class="demo-banner" id="r-demo-banner">🧪 MODO DEMO — datos sintéticos</div>
+
+    <!-- Global -->
+    <div class="global-card">
+      <div class="global-label">Evaluación Global</div>
+      <div class="global-row">
+        <span class="global-key">Estado Motor</span>
+        <span class="badge" id="r-motor-badge">—</span>
+      </div>
+      <div class="global-row">
+        <span class="global-key">Riesgo de Caída</span>
+        <span class="badge" id="r-fall-badge">—</span>
+      </div>
+    </div>
+
+    <!-- Temblor -->
+    <div class="card">
+      <div class="card-title">Temblor</div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Freq. dominante reposo</span>
+          <span class="metric-val" id="r-t1-freq">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Amplitud reposo (RMS)</span>
+          <span class="metric-val" id="r-t1-rms">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Ratio postural / reposo</span>
+          <span class="metric-val" id="r-t2-ratio">—</span>
+        </div>
+        <div class="metric-interp" id="r-tremor-interp">—</div>
+      </div>
+    </div>
+
+    <!-- Finger Tapping -->
+    <div class="card">
+      <div class="card-title">Bradicinesia · Finger Tapping</div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Frecuencia media</span>
+          <span class="metric-val" id="r-ft-freq">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Decremento fatiga</span>
+          <span class="metric-val" id="r-ft-dec">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Variabilidad (CV)</span>
+          <span class="metric-val" id="r-ft-cv">—</span>
+        </div>
+        <div class="metric-interp" id="r-ft-interp">—</div>
+      </div>
+    </div>
+
+    <!-- Marcha -->
+    <div class="card">
+      <div class="card-title">Marcha · Doble Tarea</div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Cadencia</span>
+          <span class="metric-val" id="r-ga-cad">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Variabilidad del paso (CV)</span>
+          <span class="metric-val" id="r-ga-cv">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Simetría (índice)</span>
+          <span class="metric-val" id="r-ga-sym">—</span>
+        </div>
+        <div class="metric-interp" id="r-ga-interp">—</div>
+      </div>
+    </div>
+
+    <!-- Romberg -->
+    <div class="card">
+      <div class="card-title">Equilibrio · Romberg OC</div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">Área de oscilación</span>
+          <span class="metric-val" id="r-ro-area">—</span>
+        </div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-row">
+          <span class="metric-key">RMS balanceo</span>
+          <span class="metric-val" id="r-ro-rms">—</span>
+        </div>
+        <div class="metric-interp" id="r-ro-interp">—</div>
+      </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="card">
+      <div class="card-title">Nota clínica</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6" id="r-note">—</div>
+    </div>
+
+    <!-- Escalas No Motoras -->
+    <div class="card" id="r-scales-card" style="display:none">
+      <div class="card-title">Escalas No Motoras</div>
+      <div class="scale-row"><span class="scale-rname">👃 Olfato · UPSIT-12</span><span class="scale-rscore" id="rs-upsit">—</span></div>
+      <div class="scale-row"><span class="scale-rname">🧠 Cognitivo · MoCA</span><span class="scale-rscore" id="rs-moca">—</span></div>
+      <div class="scale-row"><span class="scale-rname">🚽 Estreñimiento · SCOPA</span><span class="scale-rscore" id="rs-scopa">—</span></div>
+      <div class="scale-row"><span class="scale-rname">😔 Depresión · GDS-15</span><span class="scale-rscore" id="rs-gds">—</span></div>
+      <div class="scale-row"><span class="scale-rname">😴 Sueño · PSQI</span><span class="scale-rscore" id="rs-psqi">—</span></div>
+      <div class="scale-row"><span class="scale-rname">🔋 Fatiga · FSS-9</span><span class="scale-rscore" id="rs-fss">—</span></div>
+      <div class="scale-interp" id="rs-interp"></div>
+    </div>
+
+    <button class="btn btn-accent mt-8 mb-8" onclick="exportCSV()">
+      ⬇ &nbsp;Exportar CSV
+    </button>
+    <button class="btn btn-ghost" onclick="resetApp()">
+      ↩ &nbsp;Nueva sesión
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 3 · SCALES INTRO
+════════════════════════════════════════════════════════════ -->
+<div id="s-scales-intro" class="screen">
+  <div class="app-header">
+    <div>
+      <div class="app-header-logo">NeuroMotrix Express</div>
+      <div class="app-header-sub">Escalas No Motoras · ~10 min</div>
+    </div>
+  </div>
+  <div class="page-inner">
+    <div class="info-box mb-12" style="margin-top:4px">
+      Responde con sinceridad basándote en las <b>últimas 4 semanas</b>, salvo indicación contraria.
+    </div>
+    <div class="scale-intro-card"><div class="si-icon">👃</div><div><div class="si-name">Olfato · UPSIT-12</div><div class="si-sub">Identificación de olores (adaptado digital)</div></div><div class="si-badge">12 ítems</div></div>
+    <div class="scale-intro-card"><div class="si-icon">🧠</div><div><div class="si-name">Cognitivo · MoCA</div><div class="si-sub">Orientación, atención, memoria</div></div><div class="si-badge">5 bloques</div></div>
+    <div class="scale-intro-card"><div class="si-icon">🚽</div><div><div class="si-name">Estreñimiento · SCOPA-AUT</div><div class="si-sub">7 ítems autonómicos digestivos</div></div><div class="si-badge">7 ítems</div></div>
+    <div class="scale-intro-card"><div class="si-icon">😔</div><div><div class="si-name">Depresión · GDS-15</div><div class="si-sub">Escala geriátrica de depresión</div></div><div class="si-badge">15 ítems</div></div>
+    <div class="scale-intro-card"><div class="si-icon">😴</div><div><div class="si-name">Sueño · PSQI</div><div class="si-sub">Índice Pittsburgh calidad del sueño</div></div><div class="si-badge">19 ítems</div></div>
+    <div class="scale-intro-card"><div class="si-icon">🔋</div><div><div class="si-name">Fatiga · FSS-9</div><div class="si-sub">Fatigue Severity Scale</div></div><div class="si-badge">9 ítems</div></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary mb-8" onclick="startScales()">▶ &nbsp;Iniciar Escalas</button>
+    <button class="btn btn-ghost" onclick="skipAllScales()">⏩ &nbsp;Omitir y ver informe</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 4 · SCALE QUESTIONNAIRE
+════════════════════════════════════════════════════════════ -->
+<div id="s-scales" class="screen">
+  <div class="app-header">
+    <div>
+      <div class="app-header-logo" id="sq-name">—</div>
+      <div class="app-header-sub" id="sq-sub">—</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="skipCurrentScale()">Omitir</button>
+  </div>
+  <div class="page-inner">
+    <div class="sc-prog-wrap">
+      <div class="sc-prog-bar"><div class="sc-prog-fill" id="sq-fill" style="width:0%"></div></div>
+      <div class="sc-prog-txt" id="sq-ptxt">—</div>
+    </div>
+    <div id="sq-area"></div>
+    <button class="btn btn-primary mt-8" id="sq-next" onclick="scaleNext()" disabled>Siguiente →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ── STATE ─────────────────────────────────────────────────────
+const S = {
+  ip: '', pid: '', note: '',
+  demoMode: false,
+  currentTest: 0,
+  phase: 'idle',  // idle | ready | recording | processing
+  timer: null,
+  results: {}
+};
+
+// ── TEST DEFINITIONS ──────────────────────────────────────────
+const TESTS = [
+  {
+    id: 'rest',
+    name: 'Temblor en Reposo',
+    icon: '🤲',
+    duration: 30,
+    placement: 'Mano apoyada en muslo, palma arriba',
+    instruction:
+      '<b>1.</b> Siéntese cómodamente.<br>' +
+      '<b>2.</b> Coloque el teléfono plano sobre la mano dominante, apoyada en el muslo.<br>' +
+      '<b>3.</b> Relaje completamente mano y brazo.<br>' +
+      '<b>4.</b> No realice ningún movimiento voluntario.',
+    analyze: analyzeRest
+  },
+  {
+    id: 'postural',
+    name: 'Temblor Postural',
+    icon: '🙌',
+    duration: 30,
+    placement: 'Dorso de la mano, brazos extendidos al frente',
+    instruction:
+      '<b>1.</b> De pie o sentado.<br>' +
+      '<b>2.</b> Extienda los brazos horizontalmente hacia adelante.<br>' +
+      '<b>3.</b> Teléfono sobre el dorso de la mano dominante.<br>' +
+      '<b>4.</b> Mantenga la postura sin moverse durante todo el test.',
+    analyze: analyzePostural
+  },
+  {
+    id: 'tapping',
+    name: 'Finger Tapping',
+    icon: '👆',
+    duration: 20,
+    placement: 'Teléfono en la mesa, pantalla arriba',
+    instruction:
+      '<b>1.</b> Coloque el teléfono sobre la mesa, pantalla arriba.<br>' +
+      '<b>2.</b> Golpee la pantalla con el índice <b>lo más rápido posible</b>.<br>' +
+      '<b>3.</b> Extienda y cierre completamente el dedo en cada golpe.<br>' +
+      '<b>4.</b> Continúe sin parar hasta que acabe el tiempo.',
+    analyze: analyzeTapping
+  },
+  {
+    id: 'gait',
+    name: 'Marcha · Doble Tarea',
+    icon: '🚶',
+    duration: 90,
+    placement: 'Bolsillo lateral del pantalón o cintura',
+    instruction:
+      '<b>1.</b> Teléfono en el bolsillo lateral o sujeto a la cintura.<br>' +
+      '<b>2.</b> Camine en línea recta ~10 m, gire y vuelva.<br>' +
+      '<b>3.</b> <b>Mientras camina: cuente hacia atrás desde 50 de 3 en 3</b> (50, 47, 44…).<br>' +
+      '<b>4.</b> Repita hasta que acabe el tiempo.',
+    analyze: analyzeGait
+  },
+  {
+    id: 'romberg',
+    name: 'Romberg Ojos Cerrados',
+    icon: '🧍',
+    duration: 30,
+    placement: 'Pecho (sujeto con la mano o bolsillo superior)',
+    instruction:
+      '<b>1.</b> Teléfono pegado al pecho con la mano o en bolsillo superior.<br>' +
+      '<b>2.</b> De pie, pies juntos y paralelos.<br>' +
+      '<b>3.</b> <b>Cierre los ojos</b> al inicio de la grabación.<br>' +
+      '<b>⚠️ Un acompañante debe estar cerca por seguridad.</b>',
+    analyze: analyzeRomberg
+  }
+];
+
+// ── SIGNAL PROCESSING ─────────────────────────────────────────
+
+function mag(x, y, z) { return x.map((_, i) => Math.sqrt(x[i]**2 + y[i]**2 + z[i]**2)); }
+function mean(a) { return a.reduce((s, v) => s + v, 0) / a.length; }
+function variance(a) { const m = mean(a); return a.reduce((s, v) => s + (v - m)**2, 0) / a.length; }
+function std(a)  { return Math.sqrt(variance(a)); }
+function rms(a)  { return Math.sqrt(a.reduce((s, v) => s + v*v, 0) / a.length); }
+function cv(a)   { const m = mean(a); return m === 0 ? 0 : std(a) / Math.abs(m) * 100; }
+function detrend(a) { const m = mean(a); return a.map(v => v - m); }
+function sampleRate(t) {
+  if (t.length < 2) return 50;
+  const dts = []; for (let i = 1; i < Math.min(t.length, 100); i++) dts.push(t[i] - t[i-1]);
+  return 1 / mean(dts);
+}
+
+// FFT (Cooley-Tukey, in-place)
+function fft(signal) {
+  const n = (() => { let p = 1; while (p < signal.length) p <<= 1; return p; })();
+  const re = new Float64Array(n), im = new Float64Array(n);
+  for (let i = 0; i < signal.length; i++) re[i] = signal[i];
+  let j = 0;
+  for (let i = 1; i < n; i++) {
+    let b = n >> 1;
+    for (; j & b; b >>= 1) j ^= b;
+    j ^= b;
+    if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+  }
+  for (let s = 2; s <= n; s <<= 1) {
+    const half = s >> 1, ang = -2 * Math.PI / s;
+    const wRe = Math.cos(ang), wIm = Math.sin(ang);
+    for (let k = 0; k < n; k += s) {
+      let tRe = 1, tIm = 0;
+      for (let m = 0; m < half; m++) {
+        const uRe = re[k+m], uIm = im[k+m];
+        const vRe = tRe*re[k+m+half] - tIm*im[k+m+half];
+        const vIm = tRe*im[k+m+half] + tIm*re[k+m+half];
+        re[k+m] = uRe+vRe; im[k+m] = uIm+vIm;
+        re[k+m+half] = uRe-vRe; im[k+m+half] = uIm-vIm;
+        const nr = tRe*wRe - tIm*wIm; tIm = tRe*wIm + tIm*wRe; tRe = nr;
+      }
+    }
+  }
+  const mag2 = new Float64Array(n >> 1);
+  for (let i = 0; i < n >> 1; i++) mag2[i] = Math.sqrt(re[i]**2 + im[i]**2) / n;
+  return mag2;
+}
+
+function dominantHz(signal, sr, lo = 2, hi = 15) {
+  const mspec = fft(detrend(signal));
+  const n2 = mspec.length * 2;
+  const res = sr / n2;
+  const iLo = Math.floor(lo / res), iHi = Math.ceil(hi / res);
+  let pk = 0, pki = iLo;
+  for (let i = iLo; i <= Math.min(iHi, mspec.length - 1); i++) {
+    if (mspec[i] > pk) { pk = mspec[i]; pki = i; }
+  }
+  return { hz: pki * res, power: pk };
+}
+
+function findPeaks(sig, minDist, threshold) {
+  const th = threshold ?? mean(sig) + std(sig) * 0.5;
+  const peaks = [];
+  for (let i = 1; i < sig.length - 1; i++) {
+    if (sig[i] > sig[i-1] && sig[i] > sig[i+1] && sig[i] > th) {
+      if (!peaks.length || i - peaks[peaks.length-1] >= minDist) peaks.push(i);
+    }
+  }
+  return peaks;
+}
+
+// ── ANALYSIS FUNCTIONS ────────────────────────────────────────
+
+function analyzeRest(d) {
+  const m = mag(d.accX, d.accY, d.accZ);
+  const sr = sampleRate(d.acc_time);
+  const det = detrend(m);
+  const { hz } = dominantHz(det, sr);
+  const amp = rms(det);
+  S.results._restRms = amp;
+  return {
+    freq: hz.toFixed(1),
+    rms:  amp.toFixed(3),
+    interp: interpRestTremor(hz, amp)
+  };
+}
+
+function analyzePostural(d) {
+  const m = mag(d.accX, d.accY, d.accZ);
+  const sr = sampleRate(d.acc_time);
+  const det = detrend(m);
+  const { hz } = dominantHz(det, sr);
+  const amp = rms(det);
+  const ratio = S.results._restRms > 0 ? amp / S.results._restRms : null;
+  return {
+    freq:  hz.toFixed(1),
+    rms:   amp.toFixed(3),
+    ratio: ratio !== null ? ratio.toFixed(2) : 'N/A',
+    interp: interpPostural(hz, amp, ratio)
+  };
+}
+
+function analyzeTapping(d) {
+  const sr = sampleRate(d.acc_time);
+  const sig = d.accZ.map(v => Math.abs(v));
+  const minDist = Math.floor(sr * 0.12);
+  const peaks = findPeaks(sig, minDist);
+  const totalT = d.acc_time[d.acc_time.length - 1] - d.acc_time[0];
+  const freqHz = peaks.length / totalT;
+
+  // Decrement: first third vs last third in time
+  const t1end = d.acc_time[0] + totalT / 3;
+  const t2start = d.acc_time[0] + totalT * 2 / 3;
+  const pFirst = peaks.filter(p => d.acc_time[p] < t1end);
+  const pLast  = peaks.filter(p => d.acc_time[p] > t2start);
+  let decrement = 'N/A';
+  if (pFirst.length > 1 && pLast.length > 1) {
+    const fFirst = pFirst.length / (totalT / 3);
+    const fLast  = pLast.length  / (totalT / 3);
+    decrement = fFirst > 0 ? ((fFirst - fLast) / fFirst * 100).toFixed(1) : 'N/A';
+  }
+
+  // CV of inter-tap intervals
+  let tapCV = 'N/A';
+  if (peaks.length > 3) {
+    const ivs = peaks.slice(1).map((p, i) => d.acc_time[p] - d.acc_time[peaks[i]]);
+    tapCV = cv(ivs).toFixed(1);
+  }
+
+  return {
+    freq: freqHz.toFixed(2),
+    count: peaks.length,
+    decrement,
+    tapCV,
+    interp: interpTapping(freqHz, parseFloat(decrement), parseFloat(tapCV))
+  };
+}
+
+function analyzeGait(d) {
+  const sr = sampleRate(d.acc_time);
+  const m = mag(d.accX, d.accY, d.accZ);
+  const det = detrend(m);
+  const minDist = Math.floor(sr * 0.35);
+  const peaks = findPeaks(det, minDist);
+  const totalT = d.acc_time[d.acc_time.length - 1] - d.acc_time[0];
+  const cadence = (peaks.length / totalT * 60).toFixed(0);
+
+  let stepCV = 'N/A', symmetry = 'N/A';
+  if (peaks.length > 4) {
+    const ivs = peaks.slice(1).map((p, i) => d.acc_time[p] - d.acc_time[peaks[i]]);
+    stepCV = cv(ivs).toFixed(1);
+    const even = ivs.filter((_, i) => i % 2 === 0);
+    const odd  = ivs.filter((_, i) => i % 2 !== 0);
+    if (even.length && odd.length) {
+      const mE = mean(even), mO = mean(odd);
+      symmetry = (Math.min(mE, mO) / Math.max(mE, mO)).toFixed(2);
+    }
+  }
+  return {
+    cadence, steps: peaks.length, stepCV, symmetry,
+    interp: interpGait(parseFloat(cadence), parseFloat(stepCV), parseFloat(symmetry))
+  };
+}
+
+function analyzeRomberg(d) {
+  const ap = detrend(d.accX);
+  const ml = detrend(d.accY);
+  const mDet = detrend(mag(d.accX, d.accY, d.accZ));
+  const swayRms = rms(mDet);
+  const k = 2.448; // 95% CI
+  const area = (Math.PI * k * k * std(ap) * std(ml) * 10000).toFixed(1);
+  return {
+    area,
+    rms: swayRms.toFixed(3),
+    interp: interpRomberg(parseFloat(area), swayRms)
+  };
+}
+
+// ── INTERPRETATION ────────────────────────────────────────────
+
+function interpRestTremor(hz, amp) {
+  if (amp < 0.04) return 'Sin temblor en reposo significativo.';
+  if (hz >= 4 && hz <= 6) return `Temblor a ${hz.toFixed(1)} Hz — rango Parkinsoniano (4-6 Hz). Amplitud ${amp < 0.15 ? 'leve' : amp < 0.4 ? 'moderada' : 'marcada'}.`;
+  if (hz > 6 && hz <= 12) return `Temblor a ${hz.toFixed(1)} Hz — rango Esencial/fisiológico (>6 Hz).`;
+  return `Temblor a ${hz.toFixed(1)} Hz, amplitud ${amp.toFixed(3)} m/s².`;
+}
+
+function interpPostural(hz, amp, ratio) {
+  if (amp < 0.04) return 'Sin temblor postural significativo.';
+  const rs = ratio !== null ? ` (ratio ×${ratio.toFixed(2)})` : '';
+  if (ratio !== null && ratio > 1.5) return `Aumento significativo en postura${rs}. Sugiere temblor esencial o fisiológico amplificado.`;
+  return `Temblor postural ${hz.toFixed(1)} Hz${rs}.`;
+}
+
+function interpTapping(hz, dec, cv2) {
+  const out = [];
+  out.push(hz < 3.5 ? 'Bradicinesia (< 3.5 Hz)' : hz < 4.5 ? 'Frecuencia en límite bajo' : 'Frecuencia normal');
+  if (!isNaN(dec)) out.push(dec > 25 ? 'fatiga motora severa' : dec > 15 ? 'fatiga moderada' : 'sin fatiga relevante');
+  if (!isNaN(cv2)) out.push(cv2 > 20 ? 'ritmo muy irregular' : cv2 > 15 ? 'ritmo algo irregular' : '');
+  return out.filter(Boolean).join('; ') + '.';
+}
+
+function interpGait(cad, cv2, sym) {
+  const out = [];
+  out.push(cad < 80 ? 'Cadencia muy reducida' : cad < 100 ? 'Cadencia baja' : 'Cadencia normal');
+  if (!isNaN(cv2)) out.push(cv2 > 10 ? 'variabilidad del paso elevada — riesgo caída' : cv2 > 5 ? 'variabilidad moderada' : 'paso regular');
+  if (!isNaN(sym)) out.push(sym < 0.85 ? 'asimetría significativa' : sym < 0.92 ? 'asimetría leve' : '');
+  return out.filter(Boolean).join('; ') + '.';
+}
+
+function interpRomberg(area, rmv) {
+  const out = [];
+  out.push(rmv > 0.3 ? 'Inestabilidad marcada' : rmv > 0.15 ? 'Inestabilidad moderada' : 'Estabilidad aceptable');
+  out.push(area > 20 ? 'área de oscilación muy aumentada — alto riesgo de caída' : area > 8 ? 'área aumentada' : '');
+  return out.filter(Boolean).join('; ') + '.';
+}
+
+// ── GLOBAL SCORE ──────────────────────────────────────────────
+
+function globalScore() {
+  const r = S.results;
+  let m = 0, f = 0;
+  const pf = k => parseFloat(r[k]);
+
+  if (!isNaN(pf('rest_rms'))     && pf('rest_rms') > 0.2)    m++;
+  if (!isNaN(pf('post_ratio'))   && pf('post_ratio') > 1.5)  m++;
+  if (!isNaN(pf('ft_freq'))      && pf('ft_freq') < 3.5)     m++;
+  if (!isNaN(pf('ft_dec'))       && pf('ft_dec') > 25)       m++;
+  if (!isNaN(pf('ga_cv'))        && pf('ga_cv') > 10)        { m++; f += 2; }
+  if (!isNaN(pf('ga_sym'))       && pf('ga_sym') < 0.85)     { m++; f++; }
+  if (!isNaN(pf('ro_rms'))       && pf('ro_rms') > 0.3)      { m++; f += 2; }
+  if (!isNaN(pf('ro_area'))      && pf('ro_area') > 20)      f += 2;
+
+  return {
+    motor: m <= 1 ? 'ESTABLE' : m <= 3 ? 'REVISIÓN' : 'ALERTA',
+    fall:  f <= 1 ? 'BAJO'    : f <= 3 ? 'MODERADO' : 'ALTO'
+  };
+}
+
+// ── DEMO DATA GENERATOR ───────────────────────────────────────
+
+function genDemo(testId, dur, sr = 50) {
+  const n = dur * sr;
+  const t = Array.from({ length: n }, (_, i) => i / sr);
+  const noise = () => (Math.random() - .5) * 0.02;
+
+  let accX, accY, accZ;
+
+  if (testId === 'rest') {
+    // 4.5 Hz tremor + noise
+    const A = 0.18;
+    accX = t.map(v => A * Math.sin(2*Math.PI*4.5*v) + noise());
+    accY = t.map(v => A * 0.4 * Math.sin(2*Math.PI*4.5*v + 0.3) + noise());
+    accZ = t.map(v => noise());
+  } else if (testId === 'postural') {
+    // 6 Hz, higher amplitude
+    const A = 0.32;
+    accX = t.map(v => A * Math.sin(2*Math.PI*6*v) + noise());
+    accY = t.map(v => A * 0.5 * Math.sin(2*Math.PI*6*v + 0.5) + noise());
+    accZ = t.map(v => noise());
+  } else if (testId === 'tapping') {
+    // Tapping at ~4 Hz with fatigue
+    const rate = v => 4.0 - 0.8 * (v / dur); // declines from 4 to 3.2 Hz
+    accX = t.map(() => noise());
+    accY = t.map(() => noise());
+    accZ = t.map(v => {
+      const period = 1 / rate(v);
+      const phase = v % period;
+      return phase < 0.04 ? 2.5 + Math.random() * 0.5 : noise();
+    });
+  } else if (testId === 'gait') {
+    // Steps ~1.7/s (cadence ~102 steps/min), slight asymmetry
+    accX = t.map(() => noise() * 0.3);
+    accY = t.map(() => noise() * 0.2);
+    accZ = t.map(v => {
+      const stepPeriod = 0.59;
+      const phase = v % stepPeriod;
+      const isLeft = Math.floor(v / stepPeriod) % 2 === 0;
+      const amp = isLeft ? 1.8 : 1.4;
+      return phase < 0.06 ? amp + Math.random() * 0.2 : noise() * 0.3;
+    });
+  } else if (testId === 'romberg') {
+    // Moderate sway
+    let px = 0, py = 0;
+    accX = t.map(() => { px += (Math.random() - .5) * 0.06; return px + noise(); });
+    accY = t.map(() => { py += (Math.random() - .5) * 0.05; return py + noise(); });
+    accZ = t.map(() => noise() * 0.1);
+  }
+
+  return { accX, accY, accZ, acc_time: t };
+}
+
+// ── PHYPHOX API ───────────────────────────────────────────────
+
+async function phyphoxCtrl(cmd) {
+  await fetch(`http://${S.ip}/control?cmd=${cmd}`);
+}
+async function phyphoxFetch() {
+  const r = await fetch(`http://${S.ip}/get?accX=full&accY=full&accZ=full&acc_time=full`);
+  const j = await r.json();
+  return {
+    accX: j.buffer.accX.buffer,
+    accY: j.buffer.accY.buffer,
+    accZ: j.buffer.accZ.buffer,
+    acc_time: j.buffer.acc_time.buffer
+  };
+}
+
+async function testConnection() {
+  const ip = document.getElementById('inp-ip').value.trim();
+  if (!ip) return;
+  S.ip = ip.includes(':') ? ip : ip + ':8080';
+  const dot = document.getElementById('conn-dot');
+  const txt = document.getElementById('conn-text');
+  dot.className = 'conn-dot pulse'; txt.textContent = 'Conectando...';
+  try {
+    const r = await fetch(`http://${S.ip}/info`, { signal: AbortSignal.timeout(4000) });
+    const info = await r.json();
+    dot.className = 'conn-dot ok';
+    txt.textContent = `OK — ${info.title || 'Phyphox'}`;
+  } catch (e) {
+    dot.className = 'conn-dot err';
+    txt.textContent = `Error: ${e.message}`;
+  }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toast(msg, ms = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function startProtocol(demo) {
+  const ip = document.getElementById('inp-ip').value.trim();
+  if (!demo && !ip) { toast('Introduce la IP de Phyphox'); return; }
+  S.ip = ip.includes(':') ? ip : ip + ':8080';
+  S.pid  = document.getElementById('inp-pid').value.trim() || 'Anónimo';
+  S.note = document.getElementById('inp-note').value.trim();
+  S.demoMode = demo;
+  S.currentTest = 0;
+  S.results = {};
+  show('s-test');
+  loadTest(0);
+}
+
+function loadTest(idx) {
+  const test = TESTS[idx];
+  document.getElementById('demo-banner').classList.toggle('show', S.demoMode);
+
+  // Progress
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('ps' + i);
+    el.className = 'progress-seg' + (i < idx ? ' done' : i === idx ? ' active' : '');
+  }
+  document.getElementById('t-meta').textContent = `Test ${idx + 1} de ${TESTS.length}`;
+  document.getElementById('t-icon').textContent = test.icon;
+  document.getElementById('t-name').textContent = test.name;
+  document.getElementById('t-placement').textContent = test.placement;
+  document.getElementById('t-instr').innerHTML = test.instruction;
+  document.getElementById('t-num').textContent = test.duration;
+  document.getElementById('t-num').className = 'timer-big';
+  document.getElementById('t-sub').textContent = 'Listo';
+  document.getElementById('rec-badge').className = 'rec-badge';
+  document.getElementById('t-btn-area').style.display = 'block';
+  document.getElementById('t-processing').style.display = 'none';
+  const btn = document.getElementById('t-main-btn');
+  btn.textContent = '▶  Iniciar Test';
+  btn.className = 'btn btn-primary';
+  S.phase = 'ready';
+}
+
+function handleMainBtn() {
+  if (S.phase === 'ready') startRecording();
+}
+
+async function startRecording() {
+  S.phase = 'recording';
+  const test = TESTS[S.currentTest];
+  const btn = document.getElementById('t-main-btn');
+  btn.textContent = '⏹  Detener antes';
+  btn.className = 'btn btn-danger';
+  btn.onclick = () => { clearInterval(S.timer); finishRecording(); };
+  document.getElementById('rec-badge').className = 'rec-badge show';
+  document.getElementById('t-num').className = 'timer-big recording';
+  document.getElementById('t-sub').textContent = 'Grabando...';
+
+  if (!S.demoMode) {
+    try { await phyphoxCtrl('clear'); await phyphoxCtrl('start'); }
+    catch (e) { toast('⚠️ Sin contacto con Phyphox — activando modo demo'); S.demoMode = true; }
+  }
+
+  let rem = test.duration;
+  document.getElementById('t-num').textContent = rem;
+  S.timer = setInterval(async () => {
+    rem--;
+    document.getElementById('t-num').textContent = rem;
+    if (rem <= 0) { clearInterval(S.timer); await finishRecording(); }
+  }, 1000);
+}
+
+async function finishRecording() {
+  S.phase = 'processing';
+  document.getElementById('rec-badge').className = 'rec-badge';
+  document.getElementById('t-btn-area').style.display = 'none';
+  document.getElementById('t-processing').style.display = 'block';
+  document.getElementById('t-num').textContent = '✓';
+  document.getElementById('t-num').className = 'timer-big done';
+  document.getElementById('t-sub').textContent = 'Procesando...';
+
+  const test = TESTS[S.currentTest];
+  try {
+    let data;
+    if (S.demoMode) {
+      data = genDemo(test.id, test.duration);
+    } else {
+      await phyphoxCtrl('stop');
+      data = await phyphoxFetch();
+    }
+    const res = test.analyze(data);
+    S.results[test.id] = res;
+    // Store numeric keys for global score
+    if (test.id === 'rest')     { S.results.rest_rms   = parseFloat(res.rms); }
+    if (test.id === 'postural') { S.results.post_ratio = parseFloat(res.ratio); }
+    if (test.id === 'tapping')  { S.results.ft_freq = parseFloat(res.freq); S.results.ft_dec = parseFloat(res.decrement); }
+    if (test.id === 'gait')     { S.results.ga_cv = parseFloat(res.stepCV); S.results.ga_sym = parseFloat(res.symmetry); }
+    if (test.id === 'romberg')  { S.results.ro_rms = parseFloat(res.rms); S.results.ro_area = parseFloat(res.area); }
+  } catch (e) {
+    S.results[test.id] = { error: e.message };
+    toast('Error en test: ' + e.message);
+  }
+
+  S.currentTest++;
+  if (S.currentTest >= TESTS.length) {
+    show('s-scales-intro');
+  } else {
+    setTimeout(() => loadTest(S.currentTest), 600);
+  }
+}
+
+function skipTest() {
+  clearInterval(S.timer);
+  S.results[TESTS[S.currentTest].id] = { skipped: true };
+  S.currentTest++;
+  if (S.currentTest >= TESTS.length) showResults();
+  else loadTest(S.currentTest);
+}
+
+// ── RESULTS ───────────────────────────────────────────────────
+
+function cls(val, okBelow, warnBelow, higherIsBetter = false) {
+  if (isNaN(val)) return '';
+  if (higherIsBetter) {
+    if (val >= okBelow)   return 'ok';
+    if (val >= warnBelow) return 'warn';
+    return 'danger';
+  }
+  if (val <= okBelow)   return 'ok';
+  if (val <= warnBelow) return 'warn';
+  return 'danger';
+}
+
+function setM(id, val, cssClass) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val ?? '—';
+  el.className = 'metric-val ' + (cssClass || '');
+}
+
+function showResults() {
+  show('s-results');
+  const now = new Date();
+  document.getElementById('r-meta').textContent =
+    `${S.pid} · ${now.toLocaleDateString('es-ES')} ${now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`;
+  document.getElementById('r-demo-banner').classList.toggle('show', S.demoMode);
+  document.getElementById('r-note').textContent = S.note || '(sin nota)';
+
+  const r = S.results;
+
+  // Tremor
+  const rt = r.rest;
+  const pt = r.postural;
+  if (rt && !rt.error && !rt.skipped) {
+    setM('r-t1-freq', rt.freq + ' Hz', cls(parseFloat(rt.freq), 4, 4) === 'ok' ? '' : 'warn');
+    setM('r-t1-rms',  rt.rms + ' m/s²', cls(parseFloat(rt.rms), 0.05, 0.2));
+  }
+  if (pt && !pt.error && !pt.skipped) {
+    const ratio = parseFloat(pt.ratio);
+    setM('r-t2-ratio', '×' + pt.ratio, cls(ratio, 1.3, 2.0));
+    document.getElementById('r-tremor-interp').textContent = pt.interp;
+  } else if (rt && !rt.error) {
+    document.getElementById('r-tremor-interp').textContent = rt.interp;
+  }
+
+  // Tapping
+  const ft = r.tapping;
+  if (ft && !ft.error && !ft.skipped) {
+    setM('r-ft-freq', ft.freq + ' Hz',  cls(parseFloat(ft.freq), 4.5, 3.5, true));
+    setM('r-ft-dec',  ft.decrement + ' %', cls(parseFloat(ft.decrement), 15, 25));
+    setM('r-ft-cv',   ft.tapCV + ' %',  cls(parseFloat(ft.tapCV), 15, 20));
+    document.getElementById('r-ft-interp').textContent = ft.interp;
+  }
+
+  // Gait
+  const ga = r.gait;
+  if (ga && !ga.error && !ga.skipped) {
+    setM('r-ga-cad', ga.cadence + ' p/min', cls(parseFloat(ga.cadence), 100, 80, true));
+    setM('r-ga-cv',  ga.stepCV + ' %',       cls(parseFloat(ga.stepCV), 5, 10));
+    setM('r-ga-sym', ga.symmetry,             cls(parseFloat(ga.symmetry), 0.92, 0.85, true));
+    document.getElementById('r-ga-interp').textContent = ga.interp;
+  }
+
+  // Romberg
+  const ro = r.romberg;
+  if (ro && !ro.error && !ro.skipped) {
+    setM('r-ro-area', ro.area + ' u.a.', cls(parseFloat(ro.area), 8, 20));
+    setM('r-ro-rms',  ro.rms + ' m/s²', cls(parseFloat(ro.rms), 0.15, 0.3));
+    document.getElementById('r-ro-interp').textContent = ro.interp;
+  }
+
+  // Global
+  const gs = globalScore();
+  const motorBadge = document.getElementById('r-motor-badge');
+  motorBadge.textContent = gs.motor;
+  motorBadge.className = 'badge ' + (gs.motor === 'ESTABLE' ? 'badge-ok' : gs.motor === 'REVISIÓN' ? 'badge-warn' : 'badge-danger');
+  const fallBadge = document.getElementById('r-fall-badge');
+  fallBadge.textContent = 'RIESGO ' + gs.fall;
+  fallBadge.className = 'badge ' + (gs.fall === 'BAJO' ? 'badge-ok' : gs.fall === 'MODERADO' ? 'badge-warn' : 'badge-danger');
+  renderScalesResults();
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────
+
+function exportCSV() {
+  const now = new Date();
+  const r = S.results;
+  const gs = globalScore();
+  const rows = [
+    ['Timestamp', now.toISOString()],
+    ['Paciente', S.pid],
+    ['Nota', S.note],
+    ['Modo Demo', S.demoMode ? 'Sí' : 'No'],
+    [''],
+    ['=== TEMBLOR REPOSO ==='],
+    ['Freq. dominante (Hz)', r.rest?.freq ?? 'N/A'],
+    ['Amplitud RMS (m/s²)', r.rest?.rms ?? 'N/A'],
+    ['=== TEMBLOR POSTURAL ==='],
+    ['Freq. dominante (Hz)', r.postural?.freq ?? 'N/A'],
+    ['Amplitud RMS (m/s²)', r.postural?.rms ?? 'N/A'],
+    ['Ratio postural/reposo', r.postural?.ratio ?? 'N/A'],
+    ['=== FINGER TAPPING ==='],
+    ['Frecuencia media (Hz)', r.tapping?.freq ?? 'N/A'],
+    ['Nº toques', r.tapping?.count ?? 'N/A'],
+    ['Decremento fatiga (%)', r.tapping?.decrement ?? 'N/A'],
+    ['Variabilidad CV (%)', r.tapping?.tapCV ?? 'N/A'],
+    ['=== MARCHA DOBLE TAREA ==='],
+    ['Cadencia (p/min)', r.gait?.cadence ?? 'N/A'],
+    ['Nº pasos', r.gait?.steps ?? 'N/A'],
+    ['Variabilidad paso CV (%)', r.gait?.stepCV ?? 'N/A'],
+    ['Simetría', r.gait?.symmetry ?? 'N/A'],
+    ['=== ROMBERG OC ==='],
+    ['Área oscilación (u.a.)', r.romberg?.area ?? 'N/A'],
+    ['RMS balanceo (m/s²)', r.romberg?.rms ?? 'N/A'],
+    [''],
+    ['=== CLASIFICACIÓN ==='],
+    ['Estado Motor', gs.motor],
+    ['Riesgo Caída', gs.fall],
+    [''],
+    ['=== ESCALAS NO MOTORAS ==='],
+    ['UPSIT-12 · Puntuación', SS.results.upsit?.label ?? 'N/A'],
+    ['UPSIT-12 · Interpretación', SS.results.upsit?.interp ?? 'N/A'],
+    ['MoCA · Puntuación', SS.results.moca?.label ?? 'N/A'],
+    ['MoCA · Interpretación', SS.results.moca?.interp ?? 'N/A'],
+    ['SCOPA-AUT · Puntuación', SS.results.scopa?.label ?? 'N/A'],
+    ['SCOPA-AUT · Interpretación', SS.results.scopa?.interp ?? 'N/A'],
+    ['GDS-15 · Puntuación', SS.results.gds?.label ?? 'N/A'],
+    ['GDS-15 · Interpretación', SS.results.gds?.interp ?? 'N/A'],
+    ['PSQI · Puntuación', SS.results.psqi?.label ?? 'N/A'],
+    ['PSQI · Interpretación', SS.results.psqi?.interp ?? 'N/A'],
+    ['FSS-9 · Media', SS.results.fss?.label ?? 'N/A'],
+    ['FSS-9 · Interpretación', SS.results.fss?.interp ?? 'N/A'],
+  ];
+  const csv = rows.map(r2 => r2.map(c => `"${String(c ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `neuromotrix_${S.pid}_${now.toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exportado ✓');
+}
+
+function resetApp() {
+  clearInterval(S.timer);
+  S.currentTest = 0; S.results = {};
+  SS.scaleIdx=0; SS.qIdx=0; SS.answers=[]; SS.results={};
+  show('s-setup');
+}
+
+// ════════════════════════════════════
+// ESCALAS NO MOTORAS
+// ════════════════════════════════════
+
+const SS={scaleIdx:0,qIdx:0,answers:[],results:{}};
+
+const SCALES=[
+{id:'upsit',name:'Olfato · UPSIT-12',sub:'Identificación de olores (adaptado digital)',
+ intro:'Se muestran 12 objetos. Elige cuál de las 4 opciones describe mejor su olor característico.',
+ type:'emoji',
+ questions:[
+  {obj:'🌹',q:'¿Qué olor tiene?',opts:['🌺 Flores/Rosa','🍋 Limón','🧄 Ajo','🪵 Madera'],correct:0},
+  {obj:'🍋',q:'¿Qué olor tiene?',opts:['🌹 Flores','🍋 Cítrico','☕ Café','🧅 Cebolla'],correct:1},
+  {obj:'☕',q:'¿Qué olor tiene?',opts:['🌊 Mar','🧈 Mantequilla','☕ Café','🌿 Hierba'],correct:2},
+  {obj:'🧄',q:'¿Qué olor tiene?',opts:['🍬 Dulce','🧄 Ajo','🌸 Perfume','🍊 Naranja'],correct:1},
+  {obj:'🍫',q:'¿Qué olor tiene?',opts:['🍫 Chocolate','🌿 Menta','🧀 Queso','🪵 Madera'],correct:0},
+  {obj:'🍊',q:'¿Qué olor tiene?',opts:['🌺 Floral','🌿 Hierba','🍊 Naranja','🧄 Ajo'],correct:2},
+  {obj:'🌿',q:'¿Qué olor tiene?',opts:['🧴 Jabón','🌿 Hierba/Menta','🍫 Chocolate','🦨 Azufre'],correct:1},
+  {obj:'🧀',q:'¿Qué olor tiene?',opts:['🌹 Rosa','🍋 Limón','🧀 Queso','🌊 Mar'],correct:2},
+  {obj:'🍯',q:'¿Qué olor tiene?',opts:['🍯 Miel','🧅 Cebolla','🪵 Madera','🌿 Hierba'],correct:0},
+  {obj:'🌊',q:'¿Qué olor tiene?',opts:['🍫 Chocolate','🌊 Mar/Salitre','🌹 Flores','☕ Café'],correct:1},
+  {obj:'🪵',q:'¿Qué olor tiene?',opts:['🍋 Limón','🌸 Perfume','🪵 Madera/Pino','🧄 Ajo'],correct:2},
+  {obj:'🧴',q:'¿Qué olor tiene?',opts:['🦨 Azufre','🧴 Jabón/Lavanda','🍊 Naranja','🧀 Queso'],correct:1},
+ ],
+ score(ans){
+   let c=0; ans.forEach((a,i)=>{if(a===SCALES[0].questions[i].correct)c++;});
+   return{raw:c,max:12,label:`${c}/12`,
+     interp:c>=10?'Normal (≥10/12)':c>=8?'Hiposmia leve (8-9)':c>=6?'Hiposmia moderada (6-7)':'Anosmia / hiposmia severa (<6)'};
+ }
+},
+{id:'moca',name:'Cognitivo · MoCA',sub:'Versión digital simplificada',
+ intro:'Responde las siguientes preguntas cognitivas sin ayuda externa.',
+ type:'moca',
+ questions:[
+  {block:'Orientación',q:'¿En qué año estamos?',type:'input',score:v=>parseInt(v)===new Date().getFullYear()?1:0},
+  {block:'Orientación',q:'¿En qué mes estamos? (número)',type:'input',score:v=>parseInt(v)===new Date().getMonth()+1?1:0},
+  {block:'Orientación',q:'¿Qué día del mes es hoy?',type:'input',score:v=>parseInt(v)===new Date().getDate()?1:0},
+  {block:'Orientación',q:'¿Qué día de la semana es hoy? (1=Lunes…7=Domingo)',type:'input',score:v=>{const d=parseInt(v),t=new Date().getDay()||7;return d===t?1:0;}},
+  {block:'Orientación',q:'¿En qué estación estamos?',type:'select',opts:['Primavera','Verano','Otoño','Invierno'],
+   score:v=>{const m=new Date().getMonth()+1,s=m>=3&&m<=5?0:m>=6&&m<=8?1:m>=9&&m<=11?2:3;return parseInt(v)===s?1:0;}},
+  {block:'Memoria',q:'Lee y memoriza estas 5 palabras:\n\nCARO · SUAVE · VERDE · IGLESIA · FLOR\n\n¿Listas?',type:'yesno',score:()=>0},
+  {block:'Atención',q:'¿Cuánto da 100 − 7?',type:'input',score:v=>parseInt(v)===93?1:0},
+  {block:'Atención',q:'¿Cuánto da 93 − 7?',type:'input',score:v=>parseInt(v)===86?1:0},
+  {block:'Atención',q:'¿Cuánto da 86 − 7?',type:'input',score:v=>parseInt(v)===79?1:0},
+  {block:'Atención',q:'¿Cuánto da 79 − 7?',type:'input',score:v=>parseInt(v)===72?1:0},
+  {block:'Atención',q:'¿Cuánto da 72 − 7?',type:'input',score:v=>parseInt(v)===65?1:0},
+  {block:'Denominación',q:'Nombra este animal: grande, trompa larga, orejas enormes.',type:'input',score:v=>v.toLowerCase().includes('elefante')?1:0},
+  {block:'Denominación',q:'Nombra este animal: melena, ruge, rey de la selva.',type:'input',score:v=>v.toLowerCase().includes('le')||v.toLowerCase().includes('lion')?1:0},
+  {block:'Denominación',q:'Nombra este animal marino: cuerno largo como un unicornio.',type:'input',score:v=>v.toLowerCase().includes('narval')?1:0},
+  {block:'Mem. diferida',q:'¿Recuerdas las 5 palabras de antes? Escríbelas separadas por comas.',type:'input',
+   score:v=>{const ws=['caro','suave','verde','iglesia','flor'],u=v.toLowerCase();return ws.reduce((s,w)=>s+(u.includes(w)?1:0),0);}},
+ ],
+ score(ans,qs){
+   let t=0;
+   qs.forEach((q,i)=>{if(q.score&&ans[i]!=null)t+=q.score(String(ans[i]||''));});
+   return{raw:t,max:30,label:`${t}/30`,
+     interp:t>=26?'Normal (≥26/30)':t>=22?'Deterioro leve (22-25)':t>=18?'Deterioro moderado (18-21)':'Deterioro severo (<18)'};
+ }
+},
+{id:'scopa',name:'Estreñimiento · SCOPA-AUT',sub:'Síntomas autonómicos digestivos',
+ intro:'¿Con qué frecuencia has experimentado cada síntoma en el último mes?',
+ type:'likert',
+ opts:[{v:0,l:'Nunca'},{v:1,l:'A veces'},{v:2,l:'Con regularidad'},{v:3,l:'Siempre'}],
+ questions:[
+  {q:'¿Tiene dificultad para tragar sólidos?'},
+  {q:'¿Se siente lleno/a rápidamente al comer?'},
+  {q:'¿Ha tenido náuseas o vómitos?'},
+  {q:'¿Tarda más de 30 min en defecar?'},
+  {q:'¿Necesita esforzarse mucho para defecar?'},
+  {q:'¿Defeca menos de 3 veces por semana?'},
+  {q:'¿Tiene sensación de evacuación incompleta?'},
+ ],
+ score(ans){
+   const t=ans.reduce((s,v)=>s+(v??0),0);
+   return{raw:t,max:21,label:`${t}/21`,
+     interp:t<=3?'Sin estreñimiento significativo':t<=8?'Estreñimiento leve-moderado':'Estreñimiento severo — valorar manejo'};
+ }
+},
+{id:'gds',name:'Depresión · GDS-15',sub:'Escala geriátrica de depresión',
+ intro:'Responde Sí o No según cómo te has sentido en la última semana.',
+ type:'yesno_list',
+ questions:[
+  {q:'¿Está satisfecho/a con su vida?',normal:1},
+  {q:'¿Ha abandonado muchas actividades e intereses?',normal:0},
+  {q:'¿Siente que su vida está vacía?',normal:0},
+  {q:'¿Se siente frecuentemente aburrido/a?',normal:0},
+  {q:'¿Está de buen humor la mayor parte del tiempo?',normal:1},
+  {q:'¿Teme que algo malo le vaya a pasar?',normal:0},
+  {q:'¿Se siente feliz la mayor parte del tiempo?',normal:1},
+  {q:'¿Se siente frecuentemente desamparado/a?',normal:0},
+  {q:'¿Prefiere quedarse en casa en lugar de salir?',normal:0},
+  {q:'¿Cree que tiene más problemas de memoria que la mayoría?',normal:0},
+  {q:'¿Cree que es maravilloso estar vivo/a ahora mismo?',normal:1},
+  {q:'¿Se siente inútil tal y como está?',normal:0},
+  {q:'¿Se siente lleno/a de energía?',normal:1},
+  {q:'¿Cree que su situación es desesperada?',normal:0},
+  {q:'¿Cree que la mayoría de la gente está mejor que usted?',normal:0},
+ ],
+ score(ans,qs){
+   let t=0;
+   qs.forEach((q,i)=>{const a=ans[i];if(a!=null){if(q.normal===1&&a===0)t++;if(q.normal===0&&a===1)t++;}});
+   return{raw:t,max:15,label:`${t}/15`,
+     interp:t<=5?'Sin depresión (≤5)':t<=10?'Depresión leve (6-10)':'Depresión severa (>10) — evaluación indicada'};
+ }
+},
+{id:'psqi',name:'Sueño · PSQI',sub:'Índice de calidad del sueño de Pittsburgh',
+ intro:'Responde sobre tus hábitos de sueño durante el último mes.',
+ type:'mixed',
+ questions:[
+  {comp:1,q:'¿Cómo valorarías la calidad de tu sueño en general?',type:'likert4',opts:['Muy buena','Bastante buena','Bastante mala','Muy mala']},
+  {comp:2,q:'¿Cuántos minutos tardas habitualmente en dormirte?',type:'select',opts:['≤15 min','16-30 min','31-60 min','>60 min']},
+  {comp:2,q:'¿Con qué frecuencia no pudiste dormirte en 30 min?',type:'likert4',opts:['Ninguna vez','<1 vez/sem','1-2 veces/sem','≥3 veces/sem']},
+  {comp:3,q:'¿Cuántas horas de sueño real consigues por noche?',type:'select',opts:['>7 h','6-7 h','5-6 h','<5 h']},
+  {comp:4,q:'¿A qué hora te acuestas habitualmente? (escribe solo la hora, ej: 23)',type:'input_num',key:'bedtime'},
+  {comp:4,q:'¿A qué hora te levantas habitualmente? (ej: 7)',type:'input_num',key:'risetime'},
+  {comp:5,q:'¿Con qué frecuencia te despertaste a mitad de la noche?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia tuviste que levantarte para ir al baño?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia no pudiste respirar cómodamente?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia tosiste o roncaste ruidosamente?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia sentiste mucho frío?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia sentiste mucho calor?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia tuviste pesadillas?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Con qué frecuencia tuviste dolor que perturbara el sueño?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:5,q:'¿Hubo alguna otra razón que perturbara tu sueño?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:6,q:'¿Con qué frecuencia tomaste medicación para dormir?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:7,q:'¿Con qué frecuencia tuviste dificultades para mantenerte despierto/a?',type:'likert4',opts:['Ninguna vez','<1/sem','1-2/sem','≥3/sem']},
+  {comp:7,q:'¿Cuánto problema supuso mantener el entusiasmo en tus actividades?',type:'likert4',opts:['Ningún problema','Problema leve','Bastante problema','Problema grave']},
+ ],
+ score(ans,qs){
+   const c1=ans[0]??0;
+   const latSum=(ans[1]??0)+(ans[2]??0);
+   const c2=latSum<=1?0:latSum<=2?1:latSum<=4?2:3;
+   const c3=ans[3]??0;
+   const bt=parseFloat(ans[4]),rt=parseFloat(ans[5]);
+   let c4=0;
+   if(!isNaN(bt)&&!isNaN(rt)){
+     const hoursInBed=((rt+24-bt)%24)||8;
+     const durH=[7.5,6.5,5.5,4.5][c3]||6;
+     const eff=durH/hoursInBed*100;
+     c4=eff>=85?0:eff>=75?1:eff>=65?2:3;
+   }
+   const distSum=(ans.slice(6,15)||[]).reduce((s,v)=>s+(v??0),0);
+   const c5=distSum===0?0:distSum<=9?1:distSum<=18?2:3;
+   const c6=ans[15]??0;
+   const dysSum=(ans[16]??0)+(ans[17]??0);
+   const c7=dysSum===0?0:dysSum<=2?1:dysSum<=4?2:3;
+   const total=c1+c2+c3+c4+c5+c6+c7;
+   return{raw:total,max:21,label:`${total}/21`,c:[c1,c2,c3,c4,c5,c6,c7],
+     interp:total<=5?'Buena calidad del sueño (≤5)':total<=10?'Mala calidad del sueño (6-10)':'Trastorno grave del sueño (>10)'};
+ }
+},
+{id:'fss',name:'Fatiga · FSS-9',sub:'Fatigue Severity Scale',
+ intro:'Valora tu grado de acuerdo (1=totalmente en desacuerdo · 7=totalmente de acuerdo) en la última semana.',
+ type:'likert7',
+ questions:[
+  {q:'La motivación es menor cuando estoy cansado/a.'},
+  {q:'El ejercicio físico me produce fatiga.'},
+  {q:'Me canso fácilmente.'},
+  {q:'La fatiga interfiere con mi funcionamiento físico.'},
+  {q:'La fatiga me causa problemas frecuentes.'},
+  {q:'Mi fatiga impide una actividad física sostenida.'},
+  {q:'La fatiga interfiere con mis obligaciones y responsabilidades.'},
+  {q:'La fatiga es uno de mis tres síntomas más incapacitantes.'},
+  {q:'La fatiga interfiere con mi trabajo, familia o vida social.'},
+ ],
+ score(ans){
+   const f=ans.filter(v=>v!=null);
+   if(!f.length)return{raw:0,max:7,label:'N/A',interp:'Sin datos'};
+   const avg=f.reduce((s,v)=>s+v,0)/f.length;
+   return{raw:parseFloat(avg.toFixed(2)),max:7,label:`${avg.toFixed(1)}/7`,
+     interp:avg>=4?`Fatiga significativa (media ${avg.toFixed(1)} ≥ 4)`:`Sin fatiga significativa (media ${avg.toFixed(1)} < 4)`};
+ }
+},
+];
+
+// ── SCALE ENGINE
+function startScales(){SS.scaleIdx=0;SS.results={};show('s-scales');loadScale(0);}
+function skipAllScales(){show('s-results');renderScalesResults();}
+function skipCurrentScale(){
+  SS.results[SCALES[SS.scaleIdx].id]={skipped:true};
+  SS.scaleIdx++;
+  if(SS.scaleIdx>=SCALES.length){show('s-results');renderScalesResults();}
+  else loadScale(SS.scaleIdx);
+}
+
+function loadScale(si){
+  const sc=SCALES[si];
+  document.getElementById('sq-name').textContent=sc.name;
+  document.getElementById('sq-sub').textContent=sc.sub;
+  SS.qIdx=0;
+  SS.answers=new Array(sc.questions.length).fill(null);
+  const nb=document.getElementById('sq-next');
+  nb.textContent='Comenzar →'; nb.disabled=false;
+  nb.onclick=()=>{nb.onclick=scaleNext;renderScaleQ(si,0);};
+  document.getElementById('sq-area').innerHTML=`<div class="q-card">
+    <div class="q-num">INSTRUCCIONES</div>
+    <div class="q-text" style="font-size:13px;line-height:1.8">${sc.intro}</div>
+  </div>`;
+  updProg(si,-1);
+}
+
+function updProg(si,qi){
+  const total=SCALES[si].questions.length;
+  document.getElementById('sq-fill').style.width=qi<0?'0%':((qi+1)/total*100)+'%';
+  document.getElementById('sq-ptxt').textContent=qi<0?`0/${total}`:`${qi+1}/${total}`;
+}
+
+function renderScaleQ(si,qi){
+  SS.qIdx=qi;
+  updProg(si,qi);
+  const sc=SCALES[si],q=sc.questions[qi];
+  const nb=document.getElementById('sq-next');
+  nb.textContent=qi<sc.questions.length-1?'Siguiente →':'Finalizar escala ✓';
+  nb.disabled=true; nb.onclick=scaleNext;
+  const type=sc.type==='emoji'?'emoji':sc.type==='yesno_list'?'yesno':q.type||sc.type;
+  let html=`<div class="q-card"><div class="q-num">${sc.name.toUpperCase()} · ${qi+1}/${sc.questions.length}</div>`;
+
+  if(type==='emoji'){
+    html+=`<div class="emoji-obj">${q.obj}</div><div class="q-text">${q.q}</div><div class="emoji-grid">`;
+    q.opts.forEach((o,i)=>{
+      const parts=o.split(' ');
+      html+=`<div class="emoji-opt" id="eo${i}" onclick="selEmoji(${si},${qi},${i})">
+        <div class="eo-icon">${parts[0]}</div><div class="eo-label">${parts.slice(1).join(' ')}</div></div>`;
+    });
+    html+='</div>';
+  } else if(type==='yesno'){
+    html+=`<div class="q-text">${q.q.replace(/\n/g,'<br>')}</div>
+      <div class="yn-row">
+        <button class="yn-btn" id="yn-si" onclick="selYN(${si},${qi},1)">Sí</button>
+        <button class="yn-btn" id="yn-no" onclick="selYN(${si},${qi},0)">No</button>
+      </div>`;
+  } else if(type==='likert'||type==='likert4'){
+    const opts=sc.opts||q.opts||[];
+    html+=`<div class="q-text">${q.q}</div><div class="likert-wrap">`;
+    opts.forEach((o,i)=>{
+      const lbl=typeof o==='object'?o.l:o,val=typeof o==='object'?o.v:i;
+      html+=`<div class="likert-opt" id="lo${i}" onclick="selLikert(${si},${qi},${val},${i})">
+        <span class="likert-score">${val}</span><span class="likert-label">${lbl}</span></div>`;
+    });
+    html+='</div>';
+  } else if(type==='likert7'){
+    html+=`<div class="q-text">${q.q}</div>
+      <div class="q-subtext">1 = Totalmente en desacuerdo &nbsp;·&nbsp; 7 = Totalmente de acuerdo</div>
+      <div class="likert-wrap">`;
+    const lmap={1:'Totalmente en desacuerdo',4:'Neutro',7:'Totalmente de acuerdo'};
+    for(let i=1;i<=7;i++)
+      html+=`<div class="likert-opt" id="lo${i}" onclick="selLikert(${si},${qi},${i},${i})">
+        <span class="likert-score">${i}</span><span class="likert-label">${lmap[i]||''}</span></div>`;
+    html+='</div>';
+  } else if(type==='select'){
+    const opts=q.opts||sc.opts||[];
+    html+=`<div class="q-text">${q.q}</div><div class="likert-wrap">`;
+    opts.forEach((o,i)=>html+=`<div class="likert-opt" id="lo${i}" onclick="selLikert(${si},${qi},${i},${i})">
+      <span class="likert-score">${i}</span><span class="likert-label">${o}</span></div>`);
+    html+='</div>';
+  } else if(type==='input'||type==='input_num'){
+    html+=`<div class="q-text">${q.q.replace(/\n/g,'<br>')}</div>
+      <input class="q-input" id="q-inp" type="${type==='input_num'?'number':'text'}"
+        placeholder="Tu respuesta…" oninput="selInput(${si},${qi})">`;
+  } else if(type==='mixed'||type==='likert4'){
+    // PSQI per-question mixed rendering
+    renderMixed(si,qi,q,html); return;
+  }
+  html+='</div>';
+  document.getElementById('sq-area').innerHTML=html;
+  restoreAns(type,SS.answers[qi],q,sc);
+}
+
+function renderMixed(si,qi,q){
+  const type=q.type;
+  let html=`<div class="q-card"><div class="q-num">PSQI · ${qi+1}/${SCALES[si].questions.length}</div>
+    <div class="q-text">${q.q}</div>`;
+  if(type==='likert4'||type==='select'){
+    html+=`<div class="likert-wrap">`;
+    q.opts.forEach((o,i)=>html+=`<div class="likert-opt" id="lo${i}" onclick="selLikert(${si},${qi},${i},${i})">
+      <span class="likert-score">${i}</span><span class="likert-label">${o}</span></div>`);
+    html+='</div>';
+  } else if(type==='input_num'){
+    html+=`<input class="q-input" id="q-inp" type="number" min="0" max="23"
+      placeholder="Hora (0-23)…" oninput="selInput(${si},${qi})">`;
+  }
+  html+='</div>';
+  document.getElementById('sq-area').innerHTML=html;
+  const prev=SS.answers[qi];
+  if(prev!=null){
+    if(type==='likert4'||type==='select'){document.getElementById('lo'+prev)?.classList.add('selected');document.getElementById('sq-next').disabled=false;}
+    else if(type==='input_num'){const e=document.getElementById('q-inp');if(e){e.value=prev;document.getElementById('sq-next').disabled=false;}}
+  }
+}
+
+function restoreAns(type,prev,q,sc){
+  if(prev==null)return;
+  const nb=document.getElementById('sq-next');
+  if(type==='emoji'){document.getElementById('eo'+prev)?.classList.add('selected');nb.disabled=false;}
+  else if(type==='yesno'){document.getElementById(prev===1?'yn-si':'yn-no')?.classList.add(prev===1?'selected-yes':'selected-no');nb.disabled=false;}
+  else if(type==='likert'||type==='likert4'||type==='likert7'||type==='select'){
+    const opts=sc.opts||q.opts||[];const idx=typeof(opts[0])==='object'?opts.findIndex(o=>o.v===prev):prev;
+    document.getElementById('lo'+idx)?.classList.add('selected');nb.disabled=false;
+  } else if(type==='input'||type==='input_num'){const e=document.getElementById('q-inp');if(e){e.value=prev;nb.disabled=false;}}
+}
+
+function selEmoji(si,qi,idx){SS.answers[qi]=idx;document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));document.getElementById('eo'+idx)?.classList.add('selected');document.getElementById('sq-next').disabled=false;}
+function selYN(si,qi,val){SS.answers[qi]=val;['yn-si','yn-no'].forEach(id=>document.getElementById(id)?.classList.remove('selected-yes','selected-no'));document.getElementById(val===1?'yn-si':'yn-no')?.classList.add(val===1?'selected-yes':'selected-no');document.getElementById(val===0?'yn-si':'yn-no')?.classList.add(val===0?'selected-yes':'selected-no');document.getElementById('sq-next').disabled=false;}
+function selLikert(si,qi,val,idx){SS.answers[qi]=val;document.querySelectorAll('.likert-opt').forEach(e=>e.classList.remove('selected'));document.getElementById('lo'+idx)?.classList.add('selected');document.getElementById('sq-next').disabled=false;}
+function selInput(si,qi){const e=document.getElementById('q-inp');if(e&&e.value.trim()){SS.answers[qi]=e.value.trim();document.getElementById('sq-next').disabled=false;}}
+
+function scaleNext(){
+  const sc=SCALES[SS.scaleIdx];
+  if(SS.qIdx<sc.questions.length-1){renderScaleQ(SS.scaleIdx,SS.qIdx+1);}
+  else{
+    SS.results[sc.id]=sc.score(SS.answers,sc.questions);
+    SS.results[sc.id].answers=[...SS.answers];
+    SS.scaleIdx++;
+    if(SS.scaleIdx>=SCALES.length){show('s-results');renderScalesResults();}
+    else loadScale(SS.scaleIdx);
+  }
+}
+
+function renderScalesResults(){
+  const card=document.getElementById('r-scales-card');
+  if(!Object.keys(SS.results).length){card.style.display='none';return;}
+  card.style.display='block';
+  const interps=[];
+  function setS(domId,scId,okMax,warnMax,higher=false){
+    const res=SS.results[scId],el=document.getElementById(domId);
+    if(!el)return;
+    if(!res||res.skipped){el.textContent='Omitido';el.className='scale-rscore';return;}
+    el.textContent=res.label;
+    const r=res.raw;
+    const c=higher?(r>=okMax?'ok':r>=warnMax?'warn':'danger'):(r<=okMax?'ok':r<=warnMax?'warn':'danger');
+    el.className='scale-rscore metric-val '+c;
+    if(res.interp)interps.push(res.interp);
+  }
+  setS('rs-upsit','upsit',10,8,true);
+  setS('rs-moca','moca',26,22,true);
+  setS('rs-scopa','scopa',3,8);
+  setS('rs-gds','gds',5,10);
+  setS('rs-psqi','psqi',5,10);
+  setS('rs-fss','fss',4,5);
+  document.getElementById('rs-interp').textContent=interps.join(' · ');
+}
+</script>
+</body>
+</html>
